@@ -4,14 +4,24 @@ import { findById } from "../models/user.js";
 
 export const authenticate = async (req, res, next) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
+    // Get token from cookie or Authorization header
+    let token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Authentication required" });
+    // Check for token in cookie first
+    if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    }
+    // Then check Authorization header as fallback
+    else if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

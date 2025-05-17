@@ -6,9 +6,10 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 
 // Import database
-import {initDb} from "./models/db.js";
+import { initDb } from "./models/db.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -18,7 +19,7 @@ import fileRoutes from "./routes/files.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 // Import queue service
-// import queueService from "./services/queue.js";
+import { initWorker } from "./services/queue.js";
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,7 @@ const __dirname = path.dirname(__filename);
 
 // Set up middleware
 app.use(helmet()); // Security headers
+app.use(cookieParser()); // Parse cookies
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
@@ -66,9 +68,20 @@ initDb()
   .then(() => {
     console.log("Database initialized");
 
-    // Initialize worker
-    // const worker = queueService.initWorker();
-    // console.log("Worker initialized");
+    // Initialize worker (handle potential errors gracefully)
+    try {
+      const worker = initWorker();
+      if (worker) {
+        console.log("Worker initialized");
+      } else {
+        console.log("Worker initialization skipped");
+      }
+    } catch (error) {
+      console.warn(
+        "Worker initialization failed, but server will continue:",
+        error.message
+      );
+    }
 
     // Start server
     const PORT = process.env.PORT || 3000;

@@ -1,8 +1,8 @@
 import express from "express";
 import {
   uploadFile,
-//   getFileById,
-//   getUserFiles,
+  getFileById,
+  getUserFiles,
 } from "../controllers/fileController.js";
 import { authenticate } from "../middleware/auth.js";
 import upload from "../config/multer.js";
@@ -16,9 +16,9 @@ router.use(authenticate);
 router.post("/upload", upload.single("file"), uploadFile);
 
 // Get a specific file
-// router.get("/:id", getFileById);
+router.get("/:id", getFileById);
 
-// Get all files for the authenticated user (with pagination)
-// router.get("/", getUserFiles);
+//Get all files for the authenticated user (with pagination)
+router.get("/", getUserFiles);
 
 export default router;

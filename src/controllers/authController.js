@@ -34,6 +34,14 @@ export const login = async (req, res, next) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
+    // Set token as an HTTP-only cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 43200000, // 12 hours in milliseconds
+      sameSite: "strict",
+    });
+
     // Return token
     res.status(200).json({
       message: "Login successful",
@@ -74,6 +82,14 @@ export const register = async (req, res, next) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
+    // Set token as an HTTP-only cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 43200000, // 12 hours in milliseconds
+      sameSite: "strict",
+    });
+
     // Return token and user info
     res.status(201).json({
       message: "User created successfully",
@@ -83,6 +99,21 @@ export const register = async (req, res, next) => {
         email: newUser.email,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    // Clear the auth cookie
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     next(error);
   }
